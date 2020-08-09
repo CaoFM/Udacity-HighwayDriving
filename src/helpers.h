@@ -4,6 +4,7 @@
 #include <math.h>
 #include <string>
 #include <vector>
+#include "configuration.h"
 
 // for convenience
 using std::string;
@@ -153,5 +154,51 @@ vector<double> getXY(double s, double d, const vector<double> &maps_s,
 
   return {x,y};
 }
+
+double PerSec2PerLoop(double x) { return x / 50.0; }
+double PerLoop2PerSec(double x) { return x * 50.0; }
+double Mph2Mps(double x) { return x * 1.61 / 3.6; }
+double Mps2Mph(double x) { return x * 3.6 / 1.61; }
+
+bool IsAffectingLane(int lane_id, double d)
+{
+  /* returns whether a vehicle is at least partially within given lane */
+  bool affecting_lane = false;
+  
+  double lane_left_boarder = (double)lane_id * 4.0;
+  double lane_right_boarder = (double)(lane_id + 1.0) * 4.0;
+
+  if (  (d > (lane_left_boarder - CAR_WIDTH/2.0))
+      &&(d < (lane_right_boarder + CAR_WIDTH/2.0))
+      )
+  {
+    affecting_lane = true;
+  }
+  
+  return affecting_lane;
+}
+
+double CorrectS(double s,double car_s) {
+  double ds = s - car_s; /* relative S of target to ego */
+  double s_new;
+  
+  if (ds > (MAX_S/2.0))
+  {
+    /* car_s has wrapped around track, car_s has not */
+    s_new = s - MAX_S;
+  }
+  else if (ds < (-MAX_S/2.0))
+  {
+    /* s has wrapped around track, car_s has not */
+    s_new = s + MAX_S;
+  }
+  else
+  {
+    s_new = s;
+  }
+  
+  return s_new;
+}
+
 
 #endif  // HELPERS_H
